@@ -1,13 +1,26 @@
 # API Choice
 
-- Étudiant :
-- API choisie :
-- URL base :
-- Documentation officielle / README :
-- Auth : None / API Key / OAuth
+- Étudiant : Youssef BEN CHOUCHANE
+- API choisie : Frankfurter (taux de change de la Banque centrale européenne)
+- URL base : https://api.frankfurter.app
+- Documentation officielle / README : https://www.frankfurter.app/docs/
+- Auth : None
 - Endpoints testés :
-  - GET ...
-  - GET ...
+  - GET /latest?from=EUR (derniers taux)
+  - GET /latest?from=USD&to=EUR,GBP (filtrage des devises)
+  - GET /latest?amount=10&from=EUR&to=USD (conversion d'un montant)
+  - GET /currencies (liste des devises)
+  - GET /2024-01-02?from=EUR (taux historiques)
+  - GET /latest?from=XXX (cas d'erreur : devise invalide)
 - Hypothèses de contrat (champs attendus, types, codes) :
-- Limites / rate limiting connu :
+  - /latest et /{date} : HTTP 200, Content-Type application/json, objet avec `amount` (nombre), `base` (code devise de 3 lettres), `date` (chaîne AAAA-MM-JJ), `rates` (objet non vide : code devise de 3 lettres vers nombre > 0)
+  - Le paramètre `to` limite `rates` aux devises demandées, `amount` est renvoyé tel quel
+  - /currencies : HTTP 200, objet code devise vers libellé (chaîne), contient au moins EUR et USD
+  - Devise inconnue : code d'erreur 4xx (404 observé, 400/422 acceptés)
+  - Qualité de service : latence p95 inférieure à 1500 ms
+- Limites / rate limiting connu : pas de clé ni de quota documenté ; charge volontairement limitée à 20 requêtes max par run, 1 run toutes les 5 minutes max, timeout 3 s et 1 retry
 - Risques (instabilité, downtime, CORS, etc.) :
+  - Taux mis à jour une fois par jour ouvré seulement (pas de nouvelles valeurs le week-end et les jours fériés BCE)
+  - Redirection possible vers un nouveau domaine (api.frankfurter.dev), suivie automatiquement par le client
+  - Compte PythonAnywhere gratuit : accès Internet sortant limité à une liste blanche de domaines
+  - Service gratuit maintenu par un tiers, sans engagement de disponibilité
