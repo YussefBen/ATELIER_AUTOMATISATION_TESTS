@@ -1,0 +1,22 @@
+name: Scheduled API tests
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # toutes les 30 minutes (UTC)
+  workflow_dispatch:          # permet aussi un lancement manuel depuis l'onglet Actions
+
+jobs:
+  trigger-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Déclencher un run de tests sur PythonAnywhere
+        run: |
+          status=$(curl -s -o response.json -w "%{http_code}" --max-time 60 \
+            -X POST "https://${{ secrets.PA_WEBAPP_DOMAIN }}/run?source=scheduler")
+          echo "HTTP $status"
+          cat response.json
+          # 200 = run effectué, 429 = run récent (anti-spam) : les deux sont normaux
+          if [ "$status" != "200" ] && [ "$status" != "429" ]; then
+            echo "Échec du déclenchement du run"
+            exit 1
+          fi

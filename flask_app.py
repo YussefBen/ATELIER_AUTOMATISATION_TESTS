@@ -2,7 +2,7 @@ import json
 import sqlite3
 import time
 
-from flask import Flask, Response, jsonify, redirect, render_template, url_for
+from flask import Flask, Response, jsonify, redirect, render_template, request, url_for
 
 import storage
 from tester.runner import run_all
@@ -32,7 +32,8 @@ def run():
                 "retry_in_s": int(MIN_INTERVAL_S - elapsed),
             }), 429
 
-    result = run_all(trigger="manual")
+    trigger = "scheduled" if request.args.get("source") == "scheduler" else "manual"
+    result = run_all(trigger=trigger)
     result["id"] = storage.save_run(result)
     return jsonify(result)
 
